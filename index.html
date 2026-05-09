@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Translator Demo</title>
+    <title>Translator DEMO</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -12,11 +12,11 @@
 <body>
 
     <header>
-        <i class="fa-solid fa-globe"></i> Translator Demo
+        <i class="fa-solid fa-language"></i> TRANSLATOR DEMO
     </header>
 
     <div class="container">
-        <div class="chat-column">
+        <div class="column">
             <div class="column-header">
                 <span id="label-source">Bạn đã nói: </span>
                 <select id="source-lang" class="lang-select">
@@ -31,7 +31,7 @@
             <div id="original-box" class="chat-box"></div>
         </div>
 
-        <div class="chat-column">
+        <div class="column">
             <div class="column-header">
                 <span id="label-target">Văn bản đã dịch: </span>
                 <select id="target-lang" class="lang-select">
@@ -48,16 +48,22 @@
     </div>
 
     <div class="bottom-bar">
-        <div class="control-wrapper">
-            <div class="status-text" id="status-text">Sẵn sàng. Hãy bấm nút micro để nói...</div>
-            <button id="start-btn" class="mic-btn">
+        <div class="chat-input-wrapper">
+            <input type="text" id="chat-input" placeholder="Nhập văn bản hoặc bấm micro để nói..." autocomplete="off">
+            <button id="send-btn" class="send-btn" title="Gửi văn bản">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </div>
+
+        <div class="mic-container">
+            <button id="start-btn" class="mic-btn" title="Bấm để nói">
                 <i class="fa-solid fa-microphone"></i>
             </button>
+            <div class="mic-hint">BẤM ĐỂ NÓI</div>
         </div>
     </div>
 
     <script src="script.js"></script>
-
 </body>
 
 </html>

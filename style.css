@@ -1,23 +1,45 @@
-/* --- CÀI ĐẶT CHUNG --- */
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background-color: #e4e6eb;
-    /* Màu nền xám nhạt đặc trưng của FB/Messenger */
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
+/* =========================================================
+   1. CÀI ĐẶT CHUNG & BIẾN TOÀN CỤC
+   ========================================================= */
+:root {
+    --primary-color: #0084ff;
+    --primary-gradient: linear-gradient(135deg, #0084ff, #00c6ff);
+    --danger-gradient: linear-gradient(135deg, #ff3b30, #ff2d55);
+    --bg-color: #f4f7f9;
+    --white: #ffffff;
+    --text-main: #1c1e21;
+    --text-sub: #65676b;
+    --shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
 }
 
-/* --- HEADER --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* Chống cuộn toàn trang */
+}
+
+/* =========================================================
+   2. HEADER BAR
+   ========================================================= */
 header {
-    background: linear-gradient(135deg, #00c6ff, #0072ff);
-    /* Màu xanh gradient hiện đại */
-    color: white;
-    padding: 15px 20px;
+    background: var(--primary-gradient);
+    color: var(--white);
+    padding: 16px;
     text-align: center;
-    font-size: 18px;
-    font-weight: bold;
+    font-weight: 700;
+    font-size: 1.25rem;
+    letter-spacing: 1px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     z-index: 10;
 }
@@ -26,164 +48,272 @@ header i {
     margin-right: 8px;
 }
 
-/* --- BỐ CỤC 2 CỘT --- */
+/* =========================================================
+   3. BỐ CỤC 2 CỘT CHÍNH
+   ========================================================= */
 .container {
-    display: flex;
     flex: 1;
-    overflow: hidden;
-    gap: 20px;
+    display: flex;
     padding: 20px;
+    gap: 20px;
     max-width: 1200px;
-    /* Giới hạn độ rộng để không bị loãng trên màn hình to */
     margin: 0 auto;
     width: 100%;
-    box-sizing: border-box;
+    overflow: hidden;
+    /* Giữ khung chat nằm gọn bên trong */
 }
 
-.chat-column {
+.column {
     flex: 1;
-    background: white;
-    border-radius: 16px;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    /* Đổ bóng nhẹ cho khung chat */
+    background: var(--white);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
     overflow: hidden;
+    border: 1px solid #eaeaea;
 }
 
 .column-header {
-    padding: 15px;
-    border-bottom: 1px solid #f0f2f5;
+    padding: 14px 20px;
+    background: #fafafa;
+    border-bottom: 1px solid #f0f0f0;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #ffffff;
 }
 
 .column-header span {
-    font-size: 14px;
+    font-size: 0.95rem;
     font-weight: 600;
-    color: #65676b;
+    color: var(--text-sub);
 }
 
 .lang-select {
     padding: 6px 12px;
-    font-size: 14px;
-    border-radius: 20px;
-    border: 1px solid #ccd0d5;
-    background-color: #f0f2f5;
-    color: #050505;
-    outline: none;
+    border-radius: 8px;
+    border: 1px solid #dcdfe6;
+    background: var(--white);
+    font-size: 0.9rem;
     cursor: pointer;
+    outline: none;
     font-weight: 500;
     transition: all 0.2s;
 }
 
 .lang-select:hover {
-    background-color: #e4e6eb;
+    border-color: var(--primary-color);
 }
 
-/* --- KHUNG CHỨA TIN NHẮN --- */
+/* =========================================================
+   4. HỘP CHAT (BÊN TRONG TỪNG CỘT)
+   ========================================================= */
 .chat-box {
     flex: 1;
-    overflow-y: auto;
     padding: 20px;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    background: #ffffff;
+    gap: 16px;
 }
 
-/* --- BONG BÓNG CHAT (MESSENGER STYLE) --- */
+/* Custom thanh cuộn */
+.chat-box::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-box::-webkit-scrollbar-thumb {
+    background: #cbd0d6;
+    border-radius: 10px;
+}
+
+/* =========================================================
+   5. BONG BÓNG CHAT (BUBBLES)
+   ========================================================= */
 .bubble {
-    max-width: 75%;
-    padding: 12px 16px;
-    font-size: 15px;
+    max-width: 90%;
+    padding: 14px 18px;
+    border-radius: 18px;
+    font-size: 1rem;
     line-height: 1.5;
     word-wrap: break-word;
-    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    /* Hiệu ứng nảy nhẹ lên */
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Bong bóng bên trái (Văn bản gốc) */
 .bubble.original {
-    background: #f0f2f5;
+    background-color: #f0f2f5;
+    color: var(--text-main);
     align-self: flex-start;
-    color: #050505;
-    border-radius: 18px 18px 18px 4px;
-    /* Góc trái dưới vuông hơn */
+    border-bottom-left-radius: 4px;
 }
 
 /* Bong bóng bên phải (Văn bản dịch) */
 .bubble.translated {
-    background: linear-gradient(135deg, #0084ff, #00a3ff);
-    /* Gradient xanh */
-    align-self: flex-end;
-    color: white;
-    border-radius: 18px 18px 4px 18px;
-    /* Góc phải dưới vuông hơn */
-    box-shadow: 0 2px 5px rgba(0, 132, 255, 0.2);
+    background: var(--primary-gradient);
+    color: var(--white);
+    align-self: flex-start;
+    /* Căn trái trong cột của nó */
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 132, 255, 0.2);
 }
 
-@keyframes popIn {
-    0% {
-        opacity: 0;
-        transform: scale(0.8) translateY(10px);
-    }
-
-    100% {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
+/* Trạng thái sửa bong bóng gốc */
+.bubble.editable {
+    cursor: text;
+    border: 2px solid transparent;
+    transition: all 0.2s;
 }
 
-/* --- THANH ĐIỀU KHIỂN MICRO DƯỚI CÙNG --- */
+.bubble.editable:hover {
+    background-color: #e4e6eb;
+}
+
+.bubble.editable:focus {
+    outline: none;
+    background-color: var(--white);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(0, 132, 255, 0.1);
+}
+
+/* =========================================================
+   6. THANH NHẬP LIỆU & MICRO DƯỚI CÙNG
+   ========================================================= */
 .bottom-bar {
-    padding: 20px;
-    background: white;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    padding: 20px 30px;
+    background: var(--white);
     display: flex;
-    justify-content: center;
-}
-
-.control-wrapper {
-    display: flex;
+    flex-direction: column;
     align-items: center;
+    gap: 15px;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+    z-index: 10;
+}
+
+.chat-input-wrapper {
+    display: flex;
+    width: 100%;
+    max-width: 800px;
     background: #f0f2f5;
-    padding: 8px 15px 8px 20px;
+    padding: 6px 6px 6px 20px;
     border-radius: 30px;
-    width: 60%;
-    max-width: 600px;
-    justify-content: space-between;
+    align-items: center;
+    border: 2px solid transparent;
+    transition: all 0.3s;
 }
 
-.status-text {
-    color: #65676b;
-    font-size: 15px;
+.chat-input-wrapper:focus-within {
+    background: var(--white);
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 15px rgba(0, 132, 255, 0.1);
 }
 
-/* Nút micro hình tròn */
-.mic-btn {
-    width: 45px;
-    height: 45px;
+#chat-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 1rem;
+    padding: 8px 0;
+    color: var(--text-main);
+}
+
+.send-btn {
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
     border: none;
-    background: #0084ff;
-    color: white;
-    font-size: 18px;
+    background: var(--primary-color);
+    color: var(--white);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s;
-    box-shadow: 0 2px 8px rgba(0, 132, 255, 0.4);
+    font-size: 1.1rem;
+    transition: 0.2s;
 }
 
-.mic-btn:hover {
+.send-btn:hover {
+    transform: scale(1.08);
     background: #0073e6;
-    transform: scale(1.05);
 }
 
-.mic-btn:active {
-    transform: scale(0.95);
+/* Nút Micro */
+.mic-container {
+    text-align: center;
+}
+
+.mic-btn {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    border: none;
+    background: var(--primary-gradient);
+    color: var(--white);
+    font-size: 1.6rem;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(0, 132, 255, 0.3);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.mic-btn.active {
+    background: var(--danger-gradient);
+    animation: pulse 1.5s infinite;
+}
+
+.mic-hint {
+    margin-top: 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-sub);
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.6);
+    }
+
+    70% {
+        transform: scale(1.15);
+        box-shadow: 0 0 0 15px rgba(255, 59, 48, 0);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* =========================================================
+   7. ĐÁP ỨNG THIẾT BỊ DI ĐỘNG (RESPONSIVE)
+   ========================================================= */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+    }
+
+    .column {
+        height: 250px;
+    }
+
+    /* Giới hạn chiều cao mỗi cột trên mobile */
+    .mic-btn {
+        width: 56px;
+        height: 56px;
+        font-size: 1.3rem;
+    }
 }
