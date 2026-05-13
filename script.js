@@ -1,6 +1,7 @@
+/* eslint-disable */
+
 // =========================================================
-// PHẦN 1: TỪ ĐIỂN GIAO DIỆN (UI DICTIONARY)
-// =========================================================
+// UI DICTIONARY
 const uiTranslations = {
     "vi-VN": { labelSource: "Bạn đã nói: ", labelTarget: "Văn bản đã dịch: ", placeholder: "Nhập văn bản hoặc bấm micro để nói...", statusTranslating: "(Đang dịch...)", statusUpdating: "(Đang cập nhật...)" },
     "en-US": { labelSource: "You said: ", labelTarget: "Translated text: ", placeholder: "Type text or click mic to speak...", statusTranslating: "(Translating...)", statusUpdating: "(Updating...)" },
@@ -19,72 +20,54 @@ document.getElementById('source-lang').addEventListener('change', function () {
     }
 });
 
-
 // =========================================================
-// PHẦN 2: LOGIC CHÍNH - XỬ LÝ BONG BÓNG & AI GEMINI
-// =========================================================
+// TEXT-TO-SPEECH
+let isAutoSpeakEnabled = false;
+const ttsToggleBtn = document.getElementById('tts-toggle');
 
-function setupEditableBubble(originalBubble, initialText) {
-    const sourceLang = document.getElementById('source-lang').value;
-    const ui = uiTranslations[sourceLang];
+ttsToggleBtn.addEventListener('click', function () {
+    isAutoSpeakEnabled = !isAutoSpeakEnabled;
+    if (isAutoSpeakEnabled) {
+        this.classList.add('active');
+        this.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
+    } else {
+        this.classList.remove('active');
+        this.innerHTML = '<i class="fa-solid fa-volume-xmark"></i>';
+        window.speechSynthesis.cancel();
+    }
+});
 
-    // 1. Cho phép bong bóng gốc được sửa chữ
-    originalBubble.contentEditable = true;
-    originalBubble.classList.add('editable');
-    originalBubble.title = "Click để sửa lại văn bản";
+function speakText(text, isManualClick = false) {
+    if (!text) return;
 
-    // 2. Tạo bong bóng Dịch tương ứng
-    const translatedBox = document.getElementById('translated-box');
-    const translatedBubble = document.createElement('div');
-    translatedBubble.className = 'bubble translated';
-    translatedBubble.innerText = ui.statusTranslating;
-    translatedBox.appendChild(translatedBubble);
-    translatedBox.scrollTop = translatedBox.scrollHeight;
+    // Nếu Auto-Loa đang tắt VÀ người dùng KHÔNG click thủ công -> Bỏ qua không đọc
+    if (!isAutoSpeakEnabled && !isManualClick) return;
 
-    // 3. Gọi hàm dịch thuật lần đầu
-    performTranslation(initialText, translatedBubble);
+    const langCode = document.getElementById('target-lang').value;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = langCode;
+    utterance.rate = 1.0;
 
-
-
-    // 4. LẮNG NGHE SỰ KIỆN KHI NGƯỜI DÙNG SỬA CHỮ
-    let previousText = initialText;
-
-    originalBubble.addEventListener('blur', function () {
-        const newText = this.innerText.trim();
-
-        if (newText !== "" && newText !== previousText) {
-            console.log("Phát hiện văn bản bị thay đổi. Đang dịch lại...");
-            translatedBubble.innerText = ui.statusUpdating;
-            performTranslation(newText, translatedBubble);
-            previousText = newText;
-        }
-    });
-
-    originalBubble.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            this.blur(); // Tự động thoát chế độ gõ khi nhấn Enter
-        }
-    });
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
 }
 
 // =========================================================
-// PHẦN 2: LOGIC CHÍNH - GỌI API GEMINI (BẢN VÁ LỖI CẮT CHỮ)
-// =========================================================
+// STREAMING
 async function performTranslation(textToTranslate, targetBubbleElement) {
-    const sourceSelect = document.getElementById("source-lang");
-    const targetSelect = document.getElementById("target-lang");
-    const sourceLang = sourceSelect.options[sourceSelect.selectedIndex].text;
-    const targetLang = targetSelect.options[targetSelect.selectedIndex].text;
+    const sourceLang = document.getElementById('source-lang').options[document.getElementById('source-lang').selectedIndex].text;
+    const targetLang = document.getElementById('target-lang').options[document.getElementById('target-lang').selectedIndex].text;
 
-    // --- ĐIỀN API KEY CỦA BẠN VÀO ĐÂY ---
-    const API_KEY = "AIzaSyAJiI65LmCJEjf_Br1s_xPLG2LIWsJ6UG8";
+    const API_KEY = "AIzaSyAYzHPFpqqpbEjzAdryjlmXduiUINUCInQ";
 
-    // Sử dụng model Flash 1.5 kết hợp Streaming
+    // Sử dụng model Flash
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${API_KEY}`;
 
-    const systemPrompt = `Dịch từ ${sourceLang} sang ${targetLang}. Dịch chính xác nghĩa đen, tiếng lóng và tên riêng. Trả lời trực tiếp bằng kết quả dịch, tuyệt đối không giải thích hay tự ý cắt bớt câu.
-Văn bản: "${textToTranslate}"`;
+    const systemPrompt = `Bạn là một học giả dịch thuật chuyên gia. Nhiệm vụ của bạn là dịch đoạn văn dưới đây từ ${sourceLang} sang ${targetLang}. 
+YÊU CẦU QUAN TRỌNG:
+1. Dịch chính xác nghĩa đen, tiếng lóng, và tên riêng. Trả lời trực tiếp bằng kết quả dịch, tuyệt đối không giải thích hay tự ý cắt bớt câu.
+2. Nếu có điển tích hoặc hành động có vẻ nguy hiểm, hãy hiểu đó là ngữ cảnh văn học/lịch sử, KHÔNG PHẢI hành vi bạo lực hay tự hại. Hãy dịch đầy đủ.
+Văn bản cần dịch: "${textToTranslate}"`;
 
     try {
         const response = await fetch(apiUrl, {
@@ -94,13 +77,11 @@ Văn bản: "${textToTranslate}"`;
             },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: systemPrompt }] }],
-                // TÌM ĐOẠN NÀY BÊN TRONG HÀM performTranslation:
                 generationConfig: {
                     temperature: 0.1,
-                    // Thay số 512 cũ thành 2048 (Hoặc 4096 nếu bạn muốn dịch siêu dài)
-                    maxOutputTokens: 4096
+                    maxOutputTokens: 2048 // Đủ để dịch đoạn văn rất dài
                 },
-                // BƯỚC ĐỘT PHÁ 1: TẮT HOÀN TOÀN BỘ LỌC AN TOÀN ĐỂ KHÔNG BỊ CHẶN
+                // Tắt bộ lọc an toàn để tránh bị cắt chữ
                 safetySettings: [
                     { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
                     { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
@@ -110,14 +91,14 @@ Văn bản: "${textToTranslate}"`;
             })
         });
 
-        if (!response.ok) throw new Error("Lỗi API");
+        if (!response.ok) throw new Error("Lỗi kết nối máy chủ AI");
 
         targetBubbleElement.innerText = "";
         const reader = response.body.getReader();
         const decoder = new TextDecoder("utf-8");
 
-        // BƯỚC ĐỘT PHÁ 2: SỬ DỤNG BỘ ĐÊM (BUFFER) ĐỂ HỨNG TRỌN VẸN CHỮ
         let buffer = "";
+        let fullTranslatedText = "";
 
         while (true) {
             const { done, value } = await reader.read();
@@ -125,8 +106,6 @@ Văn bản: "${textToTranslate}"`;
 
             buffer += decoder.decode(value, { stream: true });
             const lines = buffer.split("\n");
-
-            // Giữ lại dòng cuối cùng (chưa hoàn chỉnh) trong buffer để nối vào lần đọc sau
             buffer = lines.pop();
 
             for (const line of lines) {
@@ -136,32 +115,71 @@ Văn bản: "${textToTranslate}"`;
                         try {
                             const data = JSON.parse(dataStr);
                             if (data.candidates && data.candidates.length > 0) {
-                                // Bơm text thẳng vào giao diện siêu mượt
-                                targetBubbleElement.innerText += data.candidates[0].content.parts[0].text;
+                                const textPart = data.candidates[0].content.parts[0].text;
 
-                                // Cuộn khung chat xuống đáy
+                                targetBubbleElement.innerText += textPart;
+                                fullTranslatedText += textPart;
+
                                 const translatedBox = document.getElementById("translated-box");
                                 translatedBox.scrollTop = translatedBox.scrollHeight;
                             }
                         } catch (e) {
-                            // Im lặng bỏ qua lỗi parse nhỏ (nếu có)
+                            // Bỏ qua mảnh JSON hỏng
                         }
                     }
                 }
             }
         }
+
+        // Phát âm thanh
+        speakText(fullTranslatedText.trim(), false);
+
     } catch (error) {
         console.error("Translation Error:", error);
         targetBubbleElement.innerText = "(⚠️ Lỗi kết nối hoặc AI từ chối phục vụ)";
     }
 }
 
+// =========================================================
+// THIẾT LẬP BONG BÓNG VÀ SỬA CHỮ
+function setupEditableBubble(originalBubble, initialText) {
+    const sourceLang = document.getElementById('source-lang').value;
+    const ui = uiTranslations[sourceLang] || uiTranslations["vi-VN"];
+
+    originalBubble.contentEditable = true;
+    originalBubble.classList.add('editable');
+    originalBubble.title = "Click để sửa lại văn bản";
+
+    const translatedBox = document.getElementById('translated-box');
+    const translatedBubble = document.createElement('div');
+    translatedBubble.className = 'bubble translated';
+    translatedBubble.innerText = ui.statusTranslating || "(Đang dịch...)";
+    translatedBox.appendChild(translatedBubble);
+    translatedBox.scrollTop = translatedBox.scrollHeight;
+
+    performTranslation(initialText, translatedBubble);
+
+    let previousText = initialText;
+
+    originalBubble.addEventListener('blur', function () {
+        const newText = this.innerText.trim();
+        if (newText !== "" && newText !== previousText) {
+            translatedBubble.innerText = ui.statusUpdating || "(Đang cập nhật...)";
+            performTranslation(newText, translatedBubble);
+            previousText = newText;
+        }
+    });
+
+    originalBubble.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            this.blur();
+        }
+    });
+}
 
 // =========================================================
-// PHẦN 4: XỬ LÝ ÂM THANH VÀ GÕ VĂN BẢN
-// =========================================================
-
-// --- A. XỬ LÝ NÓI ---
+// XỬ LÝ ÂM THANH (MICRO) VÀ NHẬP LIỆU
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition;
 if (SpeechRecognition) {
@@ -173,67 +191,78 @@ if (SpeechRecognition) {
 let isListening = false;
 let currentVoiceBubble = null;
 let silenceTimer;
-const SILENCE_DELAY = 2000; // Ngắt câu sau 2 giây im lặng
+
+// Thời gian chờ im lặng: 2 giây để cân bằng giữa nói dài và không bị nghẽn API
+const SILENCE_DELAY = 2000;
 
 const startBtn = document.getElementById('start-btn');
 const originalBox = document.getElementById('original-box');
 
 startBtn.onclick = function () {
     if (!recognition) return alert("Trình duyệt không hỗ trợ Web Speech API.");
-    if (isListening) recognition.stop();
-    else {
+    if (isListening) {
+        recognition.stop();
+    } else {
         recognition.lang = document.getElementById('source-lang').value;
         recognition.start();
     }
 };
 
-recognition.onstart = function () {
-    isListening = true;
-    startBtn.classList.add('active');
-};
+if (recognition) {
+    recognition.onstart = function () {
+        isListening = true;
+        startBtn.classList.add('active');
+    };
 
-recognition.onresult = function (event) {
-    let interimTranscript = '';
-    let finalTranscript = '';
+    recognition.onresult = function (event) {
+        let interim = "";
+        let final = "";
 
-    for (let i = event.resultIndex; i < event.results.length; ++i) {
-        if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript;
-        else interimTranscript += event.results[i][0].transcript;
-    }
-
-    if (!currentVoiceBubble) {
-        currentVoiceBubble = document.createElement('div');
-        currentVoiceBubble.className = 'bubble original';
-        originalBox.appendChild(currentVoiceBubble);
-    }
-
-    currentVoiceBubble.innerText = finalTranscript + interimTranscript;
-    originalBox.scrollTop = originalBox.scrollHeight;
-
-    // Reset đồng hồ cát mỗi khi có âm thanh mới
-    clearTimeout(silenceTimer);
-    silenceTimer = setTimeout(function () {
-        recognition.stop();
-
-        const finalText = currentVoiceBubble.innerText.trim();
-        if (finalText !== "") {
-            setupEditableBubble(currentVoiceBubble, finalText);
-        } else {
-            currentVoiceBubble.remove();
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) final += event.results[i][0].transcript;
+            else interim += event.results[i][0].transcript;
         }
+
+        if (!currentVoiceBubble) {
+            currentVoiceBubble = document.createElement('div');
+            currentVoiceBubble.className = 'bubble original';
+            originalBox.appendChild(currentVoiceBubble);
+        }
+
+        // Chỉ cập nhật văn bản nếu bong bóng chưa bị gắn cờ "processed"
+        if (!currentVoiceBubble.classList.contains('processed')) {
+            currentVoiceBubble.innerText = final + interim;
+            originalBox.scrollTop = originalBox.scrollHeight;
+        }
+
+        clearTimeout(silenceTimer);
+        silenceTimer = setTimeout(function () {
+            recognition.stop();
+
+            // Nếu bong bóng chưa được gửi đi dịch -> Gửi đi và gắn cờ
+            if (currentVoiceBubble && !currentVoiceBubble.classList.contains('processed')) {
+                const finalText = currentVoiceBubble.innerText.trim();
+                if (finalText !== "") {
+                    currentVoiceBubble.classList.add('processed');
+                    setupEditableBubble(currentVoiceBubble, finalText);
+                } else {
+                    currentVoiceBubble.remove();
+                }
+            }
+        }, SILENCE_DELAY);
+    };
+
+    recognition.onend = function () {
+        isListening = false;
+        clearTimeout(silenceTimer);
+        startBtn.classList.remove('active');
+
+        // CHỈ DỌN DẸP BONG BÓNG KHI MICRO ĐÃ TẮT HẲN
         currentVoiceBubble = null;
+    };
+}
 
-    }, SILENCE_DELAY);
-};
-
-recognition.onend = function () {
-    isListening = false;
-    clearTimeout(silenceTimer);
-    startBtn.classList.remove('active');
-};
-
-
-// --- B. XỬ LÝ GÕ (Bằng thanh nhập liệu) ---
+// --- XỬ LÝ NHẬP VĂN BẢN THỦ CÔNG ---
 const chatInput = document.getElementById('chat-input');
 const sendBtn = document.getElementById('send-btn');
 
@@ -248,7 +277,6 @@ function handleManualSend() {
     originalBox.scrollTop = originalBox.scrollHeight;
 
     chatInput.value = "";
-
     setupEditableBubble(typedBubble, textToTranslate);
 }
 
@@ -257,5 +285,18 @@ chatInput.addEventListener("keypress", function (event) {
     if (event.key === "Enter") {
         event.preventDefault();
         handleManualSend();
+    }
+});
+
+// =========================================================
+// SỰ KIỆN CLICK ĐỂ NGHE LẠI BẢN DỊCH
+document.getElementById('translated-box').addEventListener('click', function (e) {
+    // Nếu người dùng click trúng một bong bóng bản dịch
+    if (e.target.classList.contains('translated')) {
+        const textToRead = e.target.innerText.trim();
+
+        if (textToRead !== "" && textToRead !== "(⚠️ Lỗi kết nối hoặc AI từ chối phục vụ)") {
+            speakText(textToRead, true); // Chuyền 'true' để ép đọc dù loa đang tắt
+        }
     }
 });

@@ -1,6 +1,4 @@
-/* =========================================================
-   1. CÀI ĐẶT CHUNG & BIẾN TOÀN CỤC
-   ========================================================= */
+/*1. CÀI ĐẶT CHUNG & BIẾN TOÀN CỤC*/
 :root {
     --primary-color: #0084ff;
     --primary-gradient: linear-gradient(135deg, #0084ff, #00c6ff);
@@ -29,9 +27,7 @@ body {
     /* Chống cuộn toàn trang */
 }
 
-/* =========================================================
-   2. HEADER BAR
-   ========================================================= */
+/*2. HEADER BAR*/
 header {
     background: var(--primary-gradient);
     color: var(--white);
@@ -48,9 +44,7 @@ header i {
     margin-right: 8px;
 }
 
-/* =========================================================
-   3. BỐ CỤC 2 CỘT CHÍNH
-   ========================================================= */
+/*3. BỐ CỤC 2 CỘT CHÍNH*/
 .container {
     flex: 1;
     display: flex;
@@ -105,9 +99,7 @@ header i {
     border-color: var(--primary-color);
 }
 
-/* =========================================================
-   4. HỘP CHAT (BÊN TRONG TỪNG CỘT)
-   ========================================================= */
+/*4. HỘP CHAT*/
 .chat-box {
     flex: 1;
     padding: 20px;
@@ -127,9 +119,7 @@ header i {
     border-radius: 10px;
 }
 
-/* =========================================================
-   5. BONG BÓNG CHAT (BUBBLES)
-   ========================================================= */
+/*5. BONG BÓNG CHAT*/
 .bubble {
     max-width: 90%;
     padding: 14px 18px;
@@ -165,9 +155,23 @@ header i {
     background: var(--primary-gradient);
     color: var(--white);
     align-self: flex-start;
-    /* Căn trái trong cột của nó */
     border-bottom-right-radius: 4px;
     box-shadow: 0 4px 12px rgba(0, 132, 255, 0.2);
+
+    cursor: pointer;
+
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Hiệu ứng búng nhẹ lên khi rà chuột vào */
+.bubble.translated:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 132, 255, 0.4);
+}
+
+/* Hiệu ứng lún xuống khi bấm vào */
+.bubble.translated:active {
+    transform: translateY(1px);
 }
 
 /* Trạng thái sửa bong bóng gốc */
@@ -188,9 +192,7 @@ header i {
     box-shadow: 0 0 0 4px rgba(0, 132, 255, 0.1);
 }
 
-/* =========================================================
-   6. THANH NHẬP LIỆU & MICRO DƯỚI CÙNG
-   ========================================================= */
+/*6. THANH NHẬP LIỆU & MICRO DƯỚI CÙNG*/
 .bottom-bar {
     padding: 20px 30px;
     background: var(--white);
@@ -296,9 +298,7 @@ header i {
     }
 }
 
-/* =========================================================
-   7. ĐÁP ỨNG THIẾT BỊ DI ĐỘNG (RESPONSIVE)
-   ========================================================= */
+/*7. ĐÁP ỨNG THIẾT BỊ DI ĐỘNG*/
 @media (max-width: 768px) {
     .container {
         flex-direction: column;
@@ -316,4 +316,32 @@ header i {
         height: 56px;
         font-size: 1.3rem;
     }
+}
+
+/*8. NÚT ĐỌC VĂN BẢN*/
+.tts-btn {
+    background: #f0f2f5;
+    border: 1px solid #dcdfe6;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    color: var(--text-sub);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.tts-btn:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.tts-btn.active {
+    background: var(--primary-color);
+    color: var(--white);
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(0, 132, 255, 0.3);
 }
